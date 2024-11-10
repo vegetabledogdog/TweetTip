@@ -5,6 +5,7 @@
 import axios from 'axios';
 import { LoadingButton } from "@mui/lab";
 import { Button, Chip, Divider, Stack, Typography, TextField } from "@mui/material";
+import { X } from "@mui/icons-material";
 import { Args, Transaction } from "@roochnetwork/rooch-sdk";
 import {
   useConnectWallet,
@@ -46,7 +47,18 @@ function App() {
       }}
     >
       <Stack justifyContent="space-between" className="w-full">
-        <img src="./rooch_black_combine.svg" width="120px" alt="" />
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          className="mb-6"
+        >
+          <img src="./rooch_black_combine.svg" width="120px" alt="" />
+          <Typography className="text-2xl font-semibold mt-6 text-left mb-4">
+            x
+          </Typography>
+          <X fontSize="large" />
+        </Stack>
         <Stack spacing={1} justifyItems="flex-end">
           <Chip
             label="Rooch Testnet"
@@ -182,50 +194,57 @@ function App() {
         </LoadingButton>
       </Stack>
       <Toaster expand={true} richColors position="bottom-left" />
-      <Divider className="w-full !mt-12" />
       <Stack
-        className="mt-4 w-full font-medium "
+        className="mt-12 w-full font-medium "
         direction="column"
         alignItems="flex-start"
       >
         <Typography className="text-4xl font-semibold mt-6 text-left w-full mb-4">
           Claim Tips | <span className="text-2xl">Please bind your Twitter account First</span>
         </Typography>
+        <Divider className="w-full" />
+        <Stack
+          direction="column"
+          className="mt-4 font-medium font-serif w-full text-left"
+          spacing={2}
+          alignItems="flex-start"
+        >
+          <LoadingButton
+            loading={claimLoading}
+            variant="contained"
+            sx={{ width: '400px', alignSelf: 'flex-start' }}
+            onClick={async () => {
+              try {
+                setClaimLoading(true);
+                const txn = new Transaction();
+                txn.callFunction({
+                  address: tipAddress,
+                  module: "tweet_tip",
+                  function: "claim_tip",
+                  args: [],
+                });
+                let res = await client.signAndExecuteTransaction({
+                  transaction: txn,
+                  signer: currentWallet.wallet!,
+                });
+                if (res.execution_info.status.type === 'executed') {
+                  toast.success('Claim tips successfully');
+                } else {
+                  toast.error(`Claim failed: ${JSON.stringify(res.execution_info.status)}`);
+                }
+              }
+              catch (error) {
+                console.error(String(error));
+                toast.error(String(error));
+              } finally {
+                setClaimLoading(false);
+              }
+            }}
+          >
+            {"Claim"}
+          </LoadingButton>
+        </Stack>
       </Stack>
-      <LoadingButton
-        loading={claimLoading}
-        variant="contained"
-        sx={{ width: '400px', alignSelf: 'flex-start' }}
-        onClick={async () => {
-          try {
-            setClaimLoading(true);
-            const txn = new Transaction();
-            txn.callFunction({
-              address: tipAddress,
-              module: "tweet_tip",
-              function: "claim_tip",
-              args: [],
-            });
-            let res = await client.signAndExecuteTransaction({
-              transaction: txn,
-              signer: currentWallet.wallet!,
-            });
-            if (res.execution_info.status.type === 'executed') {
-              toast.success('Claim tips successfully');
-            } else {
-              toast.error(`Claim failed: ${JSON.stringify(res.execution_info.status)}`);
-            }
-          }
-          catch (error) {
-            console.error(String(error));
-            toast.error(String(error));
-          } finally {
-            setClaimLoading(false);
-          }
-        }}
-      >
-        {"Claim"}
-      </LoadingButton>
     </Stack>
   );
 }
