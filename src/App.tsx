@@ -131,7 +131,7 @@ function App() {
               } catch {
                 return true;
               }
-            })()
+            })() || connectionStatus !== "connected"
           }
           onClick={async () => {
             try {
@@ -208,6 +208,7 @@ function App() {
             loading={claimLoading}
             variant="contained"
             sx={{ width: '400px', alignSelf: 'flex-start' }}
+            disabled={connectionStatus !== "connected"}
             onClick={async () => {
               try {
                 setClaimLoading(true);
