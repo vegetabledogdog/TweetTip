@@ -1,0 +1,17 @@
+[package]
+name = "tweet_tip"
+version = "0.0.1"
+
+[dependencies]
+MoveStdlib = { git = "https://github.com/rooch-network/rooch.git", subdir = "frameworks/move-stdlib", rev = "main" }
+MoveosStdlib = { git = "https://github.com/rooch-network/rooch.git", subdir = "frameworks/moveos-stdlib", rev = "main" }
+RoochFramework = { git = "https://github.com/rooch-network/rooch.git", subdir = "frameworks/rooch-framework", rev = "main" }
+twitter_binding = { git = "https://github.com/rooch-network/rooch.git", subdir = "apps/twitter_binding", rev = "main"}
+
+[addresses]
+tweet_tip = "0x19be61b2c02fe2670a30013f7cb874b743ef31bde435a9209f339be40982f636"
+twitter_binding = "0x701c21bf1c8cd5af8c42983890d8ca55e7a820171b8e744c13f2d9998bf76cc3"
+app_admin = "0x701c21bf1c8cd5af8c42983890d8ca55e7a820171b8e744c13f2d9998bf76cc3"
+std = "0x1"
+moveos_std = "0x2"
+rooch_framework = "0x3"
