@@ -18,9 +18,9 @@ import { toast, Toaster } from "sonner";
 import { useState } from "react";
 import "./App.css";
 import { shortAddress } from "./utils";
+import axios from "axios";
 
 const tipAddress = "0x19be61b2c02fe2670a30013f7cb874b743ef31bde435a9209f339be40982f636";
-const fetchAddress = "0x701c21bf1c8cd5af8c42983890d8ca55e7a820171b8e744c13f2d9998bf76cc3";
 
 function App() {
   const wallets = useWallets();
@@ -139,13 +139,19 @@ function App() {
               const match = tweetId.match(/status\/(\d+)/);
               if (match) {
                 const pureTweetId = match[1];
-                const res = await client.executeViewFunction({
-                  address: fetchAddress,
-                  module: "tweet_fetcher",
-                  function: "fetch_tweet",
-                  args: [Args.string(pureTweetId)],
-                });
-                let tweet_obj_id = (res.return_values?.[0].decoded_value as any)?.value.tweet_object_id;
+                const res = await axios.post(
+                  'http://test-faucet.rooch.network/fetch-tweet',
+                  {
+                    tweet_id: pureTweetId,
+                  },
+                  {
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                  }
+                );
+                console.log('res:', res);
+                let tweet_obj_id = res?.data?.ok;
                 console.log('tweet_obj_id:', tweet_obj_id);
                 if (tweet_obj_id) {
                   const res = await client.getStates({
