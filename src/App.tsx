@@ -38,6 +38,10 @@ function App() {
   const [txnLoading, setTxnLoading] = useState(false);
   const [claimLoading, setClaimLoading] = useState(false);
 
+  function sleep(time: number) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
+
   return (
     <Stack
       className="font-sans min-w-[1024px]"
@@ -150,7 +154,6 @@ function App() {
                     },
                   }
                 );
-                console.log('res:', res);
                 let tweet_obj_id = res?.data?.ok;
                 console.log('tweet_obj_id:', tweet_obj_id);
                 if (tweet_obj_id) {
@@ -161,7 +164,20 @@ function App() {
                     },
                   });
                   let author_id = res[0]?.decoded_value?.value.author_id;
-                  console.log('author_id:', author_id);
+
+                  let retryCount = 0;
+                  while (!author_id && retryCount < 20) {
+                    await sleep(1200);
+                    const retryRes = await client.getStates({
+                      accessPath: `/object/${tweet_obj_id}`,
+                      stateOption: {
+                        decode: true,
+                      },
+                    });
+                    author_id = retryRes[0]?.decoded_value?.value.author_id;
+                    retryCount++;
+                  }
+
                   if (author_id) {
                     const txn = new Transaction();
                     txn.callFunction({
@@ -180,6 +196,8 @@ function App() {
                     } else {
                       toast.error(`Tip failed: ${JSON.stringify(res.execution_info.status)}`);
                     }
+                  } else {
+                    toast.error('Please try again later. The Oracle is loading tweets.');
                   }
                 }
               }
@@ -229,8 +247,11 @@ function App() {
                   transaction: txn,
                   signer: currentWallet.wallet!,
                 });
+                console.log('res:', res);
                 if (res.execution_info.status.type === 'executed') {
                   toast.success('Claim tips successfully');
+                } else if ((res.execution_info.status as any).abort_code == 3) {
+                  toast.error('No tips to claim');
                 } else {
                   toast.error(`Claim failed: ${JSON.stringify(res.execution_info.status)}`);
                 }
